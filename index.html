@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxNjMwNjkyNDg5MDEyNzkyNTk3MSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2ZkOTlkYTA2ZGMwZGQ4YTdfaW5kZXguaHRtbC03MTcifSwiZXhwIjoxNzkyNDE3MDIxLCJpYXQiOjE3OTI0MTM0MjEsImFsZyI6IlJTMjU2In0.YfwGOG0sQPQrSPlZKCXX0grx78zLXwCfjIeiMnfLS3ND6y6bslC5FXn3frCS3-4q4-AQKHbbz-FyJvhGNPQFTNqFeALt0LV0bEFJNoWqtoQ5VPTLk0dHBk1FHUwQIV3y2Hc2unxMMmEqYqA1WwTI34es0876r_YFtaHJ771ov5w54lsfUqIT7YYURkmaAMSkEXISDCyd0uK34HQTZBwxmwGq3sp3m1sZ5TW9tHJZ7CjMDMxP-cyZ2ZMyvyj709Vy55tFS_9lSuxgRrSF1cMJKbLNAE0cOqlgXuqDj2mJOFqALgpYVMdKAz6zk2EcbCM9Y0VoX1gg24L1DfMLe8OMkg","c_fd99da06dc0dd8a7_index.html-717")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Health &amp; Circulatory System Interactive Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web" crossorigin="anonymous"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/thin/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/light/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css">
+    <!-- JSZip for generating the multi-file GitHub ZIP package -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+    <!-- Tone.js for real-time lub-dub heartbeat & UI sound synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="styles.css">
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.-bottom-0\.5{bottom:-0.125rem}.-right-0\.5{right:-0.125rem}.bottom-5{bottom:1.25rem}.left-1\/2{left:50%}.left-3{left:0.75rem}.right-3{right:0.75rem}.right-5{right:1.25rem}.top-1\/2{top:50%}.top-3{top:0.75rem}.z-10{z-index:10}.z-50{z-index:50}.order-2{order:2}.order-3{order:3}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-2\.5{margin-bottom:0.625rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.aspect-\[4\/3\.6\]{aspect-ratio:4/3.6}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-12{height:3rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-auto{height:auto}.h-full{height:100%}.max-h-\[85vh\]{max-height:85vh}.w-1\.5{width:0.375rem}.w-12{width:3rem}.w-4{width:1rem}.w-6{width:1.5rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-full{width:100%}.min-w-0{min-width:0px}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-\[1400px\]{max-width:1400px}.max-w-\[250px\]{max-width:250px}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.grid-cols-7{grid-template-columns:repeat(7, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-stretch{align-items:stretch}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-3\.5{gap:0.875rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-visible{overflow:visible}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-nowrap{white-space:nowrap}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-\[1\.5px\]{border-width:1.5px}.border-b{border-bottom-width:1px}.border-blue-300{--tw-border-opacity:1;border-color:rgb(147 197 253 / var(--tw-border-opacity, 1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250 / var(--tw-border-opacity, 1))}.border-blue-600\/40{border-color:rgb(37 99 235 / 0.4)}.border-rose-300{--tw-border-opacity:1;border-color:rgb(253 164 175 / var(--tw-border-opacity, 1))}.border-rose-600\/40{border-color:rgb(225 29 72 / 0.4)}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-slate-900{--tw-border-opacity:1;border-color:rgb(15 23 42 / var(--tw-border-opacity, 1))}.border-white{--tw-border-opacity:1;border-color:rgb(255 255 255 / var(--tw-border-opacity, 1))}.border-purple-400{--tw-border-opacity:1;border-color:rgb(192 132 252 / var(--tw-border-opacity, 1))}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133 / var(--tw-border-opacity, 1))}.bg-\[\#1877f2\]{--tw-bg-opacity:1;background-color:rgb(24 119 242 / var(--tw-bg-opacity, 1))}.bg-blue-100{--tw-bg-opacity:1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-blue-50\/90{background-color:rgb(239 246 255 / 0.9)}.bg-blue-600\/15{background-color:rgb(37 99 235 / 0.15)}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-rose-50\/90{background-color:rgb(255 241 242 / 0.9)}.bg-rose-600{--tw-bg-opacity:1;background-color:rgb(225 29 72 / var(--tw-bg-opacity, 1))}.bg-rose-600\/15{background-color:rgb(225 29 72 / 0.15)}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/50{background-color:rgb(15 23 42 / 0.5)}.bg-slate-900\/60{background-color:rgb(15 23 42 / 0.6)}.bg-slate-900\/70{background-color:rgb(15 23 42 / 0.7)}.bg-slate-900\/75{background-color:rgb(15 23 42 / 0.75)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/80{background-color:rgb(255 255 255 / 0.8)}.bg-white\/90{background-color:rgb(255 255 255 / 0.9)}.bg-purple-600{--tw-bg-opacity:1;background-color:rgb(147 51 234 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-purple-100{--tw-bg-opacity:1;background-color:rgb(243 232 255 / var(--tw-bg-opacity, 1))}.bg-rose-100{--tw-bg-opacity:1;background-color:rgb(255 228 230 / var(--tw-bg-opacity, 1))}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.from-\[\#eaf2fb\]{--tw-gradient-from:#eaf2fb var(--tw-gradient-from-position);--tw-gradient-to:rgb(234 242 251 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-\[\#f8fbff\]{--tw-gradient-to:rgb(248 251 255 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #f8fbff var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-\[\#e6f0fa\]{--tw-gradient-to:#e6f0fa var(--tw-gradient-to-position)}.p-1{padding:0.25rem}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.pb-3{padding-bottom:0.75rem}.pb-4{padding-bottom:1rem}.pr-1{padding-right:0.25rem}.pt-1{padding-top:0.25rem}.pt-2{padding-top:0.5rem}.text-left{text-align:left}.text-right{text-align:right}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.text-\[\#1877f2\]{--tw-text-opacity:1;color:rgb(24 119 242 / var(--tw-text-opacity, 1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9 / var(--tw-text-opacity, 1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-blue-800{--tw-text-opacity:1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}.text-blue-900{--tw-text-opacity:1;color:rgb(30 58 138 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-purple-800{--tw-text-opacity:1;color:rgb(107 33 168 / var(--tw-text-opacity, 1))}.text-rose-600{--tw-text-opacity:1;color:rgb(225 29 72 / var(--tw-text-opacity, 1))}.text-rose-700{--tw-text-opacity:1;color:rgb(190 18 60 / var(--tw-text-opacity, 1))}.text-rose-900{--tw-text-opacity:1;color:rgb(136 19 55 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-purple-900{--tw-text-opacity:1;color:rgb(88 28 135 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-\[\#1877f2\]:hover{--tw-bg-opacity:1;background-color:rgb(24 119 242 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-100:hover{--tw-bg-opacity:1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-rose-100:hover{--tw-bg-opacity:1;background-color:rgb(255 228 230 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-900:hover{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-100:hover{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.hover\:text-slate-900:hover{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:p-8{padding:2rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}}@media (min-width: 768px){.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-3{grid-column:span 3 / span 3}.lg\:col-span-4{grid-column:span 4 / span 4}.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:px-8{padding-left:2rem;padding-right:2rem}}@media (min-width: 1280px){.xl\:order-2{order:2}.xl\:order-3{order:3}.xl\:w-auto{width:auto}.xl\:flex-initial{flex:0 1 auto}}</style></head>
+<body class="py-4 px-3 sm:px-6 lg:px-8 select-none">
+
+    <header class="max-w-[1400px] mx-auto mb-5">
+        <div class="bento-shell px-5 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            <!-- Left User / Study Profile Badge (Inspired by Left Phone Screen) -->
+            <div class="flex items-center gap-3.5">
+                <div class="relative">
+                    <div class="w-12 h-12 rounded-full bg-pastel-sky border-2 border-slate-900 flex items-center justify-center shadow-sm">
+                        <i class="ph-fill ph-heartbeat text-2xl text-slate-900"></i>
+                    </div>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white"></span>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-blue-600 flex items-center gap-1">
+                        <span>Welcome to Anatomy Lab 👋</span>
+                        <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold border border-blue-300">Poster Interactive</span>
+                    </p>
+                    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">
+                        Circulatory System &amp; Heart Flow
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Center Segmented Pill Switcher (Inspired by Middle Phone Screen "Day | Week" Toggle) -->
+            <nav class="flex items-center bg-white p-1.5 rounded-full border-[1.5px] border-slate-900 shadow-sm order-3 xl:order-2 w-full xl:w-auto justify-center">
+                <button onclick="switchView('simulator')" id="nav-simulator" class="nav-pill flex-1 xl:flex-initial px-5 py-2 rounded-full text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-heart"></i>
+                    <span>Heart Flow Studio</span>
+                </button>
+                <button onclick="switchView('notes')" id="nav-notes" class="nav-pill flex-1 xl:flex-initial px-5 py-2 rounded-full text-xs sm:text-sm font-bold text-slate-700 hover:text-slate-900 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-cards"></i>
+                    <span>Poster Study Cards</span>
+                </button>
+                <button onclick="switchView('quiz')" id="nav-quiz" class="nav-pill flex-1 xl:flex-initial px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all bg-[#1877f2] text-white shadow-sm flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-exam"></i>
+                    <span>Mastery Quiz</span>
+                </button>
+            </nav>
+
+            <!-- Right Circular Action Buttons & GitHub Multi-File ZIP Download -->
+            <div class="flex items-center gap-2.5 order-2 xl:order-3">
+                <button onclick="toggleAudio()" id="audio-btn" title="Toggle Lub-Dub Heartbeat Sound" class="pill-circle-btn">
+                    <i id="audio-icon" class="ph-bold ph-speaker-slash text-lg"></i>
+                </button>
+                <button onclick="toggleLabels()" id="label-btn" title="Toggle Anatomical Labels" class="pill-circle-btn bg-blue-50">
+                    <i class="ph-bold ph-tag text-lg"></i>
+                </button>
+                <button onclick="exportGitHubProjectZip()" id="zip-export-btn" class="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 hover:bg-[#1877f2] text-white font-bold text-xs sm:text-sm border-[1.5px] border-slate-900 transition shadow-md cursor-pointer active:scale-95"><i class="ph-bold ph-spinner animate-spin"></i><span>Building GitHub ZIP...</span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1400px] mx-auto">
+
+        <!-- =================================================================== -->
+        <!-- VIEW 1: 3-COLUMN IMMERSIVE HEART HEALTH & BLOODFLOW STUDIO          -->
+        <!-- =================================================================== -->
+        <section id="view-simulator" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch hidden">
+
+            <!-- LEFT COLUMN (3 COLS): "Here's your heart at a glance" & Poster Takeaways -->
+            <div class="lg:col-span-3 bento-shell p-5 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Poster Overview</span>
+                        <h2 class="text-2xl font-extrabold text-slate-900 leading-tight mt-0.5">
+                            Here’s the heart at a glance
+                        </h2>
+                    </div>
+
+                    <!-- Daily Challenge Style Card -> Interactive Guided Mission -->
+                    <div class="pastel-card bg-pastel-sky p-4 relative">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-full bg-white border-[1.5px] border-slate-900 flex items-center justify-center">
+                                <i class="ph-bold ph-compass text-slate-900"></i>
+                            </div>
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/80 border border-slate-900">
+                                Interactive Tour
+                            </span>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-900 mb-1">14-Step Blood Flow Loop</h3>
+                        <p class="text-xs text-slate-800 leading-relaxed mb-3">
+                            Trace a single red blood cell from the Vena Cava to the Lungs and out the Aorta! 💪
+                        </p>
+                        <div class="flex items-center justify-between">
+                            <span id="tour-status-text" class="text-[11px] font-bold text-slate-900">Step 8 of 14 Active</span>
+                            <button onclick="toggleAutoPlay()" id="left-autoplay-btn" class="px-3.5 py-1.5 rounded-full hover:bg-slate-900 hover:text-white border-[1.5px] border-slate-900 text-xs font-extrabold transition flex items-center gap-1 shadow-sm bg-slate-900 text-white">
+                                <span id="left-autoplay-label">Pause Tour</span>
+                                <i id="left-autoplay-icon" class="ph-bold ph-pause"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Two Mini Graphic Cards (Like 78 bpm & 2,695 steps in reference UI) -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Lilac BPM Bar Visualizer Card -->
+                        <div class="pastel-card bg-pastel-lilac p-3.5 flex flex-col justify-between">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-7 h-7 rounded-full bg-white border border-slate-900 flex items-center justify-center shrink-0">
+                                    <i class="ph-fill ph-heartbeat text-rose-600 text-sm"></i>
+                                </div>
+                                <div>
+                                    <div id="mini-bpm-val" class="text-sm font-extrabold text-slate-900 leading-none">58 bpm</div>
+                                    <div class="text-[10px] text-slate-700 font-medium">Heart Rate</div>
+                                </div>
+                            </div>
+                            <!-- Vertical Pulse Bars Graphic -->
+                            <div class="flex items-end justify-between gap-1 h-12 pt-2 px-1">
+                                <span class="w-1.5 h-6 bg-slate-900/70 rounded-full"></span>
+                                <span class="w-1.5 h-10 bg-slate-900 rounded-full"></span>
+                                <span class="w-1.5 h-5 bg-slate-900/60 rounded-full"></span>
+                                <span class="w-1.5 h-8 bg-slate-900 rounded-full"></span>
+                                <span class="w-1.5 h-11 bg-white border border-slate-900 rounded-full"></span>
+                                <span class="w-1.5 h-7 bg-slate-900/75 rounded-full"></span>
+                                <span class="w-1.5 h-9 bg-white border border-slate-900 rounded-full"></span>
+                            </div>
+                        </div>
+
+                        <!-- Amber Cardiac Pressure Curve Card -->
+                        <div class="pastel-card bg-pastel-amber p-3.5 flex flex-col justify-between">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-7 h-7 rounded-full bg-white border border-slate-900 flex items-center justify-center shrink-0">
+                                    <i class="ph-bold ph-activity text-amber-700 text-sm"></i>
+                                </div>
+                                <div>
+                                    <div id="mini-pressure-val" class="text-sm font-extrabold text-slate-900 leading-none">110/70</div>
+                                    <div class="text-[10px] text-slate-700 font-medium">mmHg Press.</div>
+                                </div>
+                            </div>
+                            <!-- Smooth Curve SVG with Dot -->
+                            <svg viewBox="0 0 100 45" class="w-full h-12 overflow-visible">
+                                <path d="M 0 35 Q 28 8, 55 24 T 100 32" fill="none" stroke="#111827" stroke-width="2.5" stroke-linecap="round"></path>
+                                <circle cx="42" cy="18" r="4.5" fill="#ffffff" stroke="#111827" stroke-width="2.5"></circle>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Poster "Important Takeaways" Split Ring Card (Inspired by Emotion Check Ring) -->
+                    <div class="pastel-card bg-white p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-extrabold text-slate-900">Important Takeaways</h3>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 border border-slate-300">Poster Bottom</span>
+                        </div>
+
+                        <div class="space-y-2.5 text-xs">
+                            <div onclick="selectStep(3)" class="p-2.5 rounded-2xl bg-blue-50/90 border border-blue-300 cursor-pointer hover:bg-blue-100 transition flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">R</span>
+                                <div>
+                                    <div class="font-extrabold text-slate-900">Right Side of Heart</div>
+                                    <p class="text-slate-700 text-[11px] leading-snug">
+                                        Carries <strong class="text-blue-700">Deoxygenated blood</strong> • Pumps blood <strong class="underline">TOWARD the Lungs</strong>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div onclick="selectStep(11)" class="p-2.5 rounded-2xl bg-rose-50/90 border border-rose-300 cursor-pointer hover:bg-rose-100 transition flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-full bg-rose-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">L</span>
+                                <div>
+                                    <div class="font-extrabold text-slate-900">Left Side of Heart</div>
+                                    <p class="text-slate-700 text-[11px] leading-snug">
+                                        Carries <strong class="text-rose-700">Oxygenated blood</strong> • Pumps blood <strong class="underline">TOWARD the Body</strong>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Functions of the Heart Quick Pill Selector -->
+                <div class="pastel-card bg-pastel-purple p-3.5">
+                    <div class="text-xs font-extrabold text-slate-900 mb-2 flex items-center justify-between">
+                        <span>4 Functions of the Heart</span>
+                        <i class="ph-bold ph-sparkle"></i>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 text-[11px] font-bold">
+                        <button onclick="switchView('notes')" class="p-2 rounded-xl bg-white/90 border border-slate-900 text-left hover:bg-slate-900 hover:text-white transition truncate">1. Blood Pressure</button>
+                        <button onclick="switchView('notes')" class="p-2 rounded-xl bg-white/90 border border-slate-900 text-left hover:bg-slate-900 hover:text-white transition truncate">2. Routes Blood</button>
+                        <button onclick="switchView('notes')" class="p-2 rounded-xl bg-white/90 border border-slate-900 text-left hover:bg-slate-900 hover:text-white transition truncate">3. One-Way Flow</button>
+                        <button onclick="switchView('notes')" class="p-2 rounded-xl bg-white/90 border border-slate-900 text-left hover:bg-slate-900 hover:text-white transition truncate">4. Regulates Supply</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER COLUMN (5 COLS): "Heart Health" Interactive Illustrated Heart + ECG + 14-Step Tracker -->
+            <div class="lg:col-span-5 bento-shell p-5 flex flex-col justify-between space-y-4">
+
+                <!-- Top Header & 3 Pastel Metric Pills (Exact match to Center Phone Screen) -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Heart Bloodflow</h2>
+                            <p class="text-xs text-slate-500 font-medium">Click any chamber, valve, or vessel to inspect</p>
+                        </div>
+                        <!-- Heartbeat Speed Pill Toggle -->
+                        <div class="flex items-center bg-white rounded-full p-1 border-[1.5px] border-slate-900 text-xs font-bold">
+                            <button onclick="setPhysiologySpeed(0.65, 58, '110/70')" id="btn-spd-rest" class="spd-pill px-2.5 py-1 rounded-full bg-[#1877f2] text-white">Rest</button>
+                            <button onclick="setPhysiologySpeed(1.0, 78, '120/80')" id="btn-spd-norm" class="spd-pill px-2.5 py-1 rounded-full text-slate-600">Normal</button>
+                            <button onclick="setPhysiologySpeed(1.65, 124, '145/88')" id="btn-spd-active" class="spd-pill px-2.5 py-1 rounded-full text-slate-600">Sprint</button>
+                        </div>
+                    </div>
+
+                    <!-- 3 Pastel Stat Boxes: Pulmonary, Valve Integrity, Systemic -->
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <div onclick="selectStep(6)" class="pastel-card bg-pastel-sky p-3 cursor-pointer">
+                            <div class="text-[11px] font-bold text-slate-700">Right → Lungs</div>
+                            <div id="top-stat-1" class="text-xl font-extrabold text-slate-900 mt-1">O₂ Poor</div>
+                            <div class="text-[10px] font-semibold text-slate-700">Pulmonary Loop</div>
+                        </div>
+                        <div onclick="selectStep(2)" class="pastel-card bg-pastel-lilac p-3 cursor-pointer">
+                            <div class="text-[11px] font-bold text-slate-700">One-Way Flow</div>
+                            <div id="top-stat-2" class="text-xl font-extrabold text-slate-900 mt-1">4 Valves</div>
+                            <div class="text-[10px] font-semibold text-slate-700">100% Sealed</div>
+                        </div>
+                        <div onclick="selectStep(12)" class="pastel-card bg-pastel-amber p-3 cursor-pointer">
+                            <div class="text-[11px] font-bold text-slate-700">Left → Body</div>
+                            <div id="top-stat-3" class="text-xl font-extrabold text-slate-900 mt-1">O₂ Rich</div>
+                            <div class="text-[10px] font-semibold text-slate-700">Systemic Loop</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Illustrated Heart + Live ECG Waveform Canvas -->
+                <div class="relative w-full aspect-[4/3.6] rounded-3xl bg-gradient-to-b from-[#eaf2fb] via-[#f8fbff] to-[#e6f0fa] border-[1.5px] border-slate-900 overflow-hidden flex items-center justify-center shadow-inner">
+
+                    <!-- Legend Overlay Top-Left & Top-Right -->
+                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                        <span class="px-2.5 py-1 rounded-full bg-blue-600/15 border border-blue-600/40 text-[11px] font-extrabold text-blue-900">
+                            ← RIGHT SIDE (To Lungs)
+                        </span>
+                        <span class="px-2.5 py-1 rounded-full bg-rose-600/15 border border-rose-600/40 text-[11px] font-extrabold text-rose-900">
+                            LEFT SIDE (To Body) →
+                        </span>
+                    </div>
+
+                    <svg id="anatomical-heart-svg" viewBox="0 0 800 600" class="w-full h-full">
+                        <!-- Bold Black ECG Waveform Behind the Heart (Inspired by Middle Phone Screen) -->
+                        <g class="pointer-events-none">
+                            <path d="M 0 325 L 120 325 L 140 295 L 158 345 L 178 215 L 198 395 L 215 305 L 235 325 L 565 325 L 585 295 L 605 345 L 625 210 L 645 395 L 662 305 L 682 325 L 800 325" fill="none" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M 0 325 L 120 325 L 140 295 L 158 345 L 178 215 L 198 395 L 215 305 L 235 325 L 565 325 L 585 295 L 605 345 L 625 210 L 645 395 L 662 305 L 682 325 L 800 325" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" class="ecg-line-anim"></path>
+                        </g>
+
+                        <!-- Soft Drop Shadow Under Heart -->
+                        <ellipse cx="400" cy="480" rx="165" ry="20" fill="rgba(15, 23, 42, 0.10)"></ellipse>
+
+                        <!-- ========================================================= -->
+                        <!-- STEP 8: LUNG TISSUE (PULMONARY CIRCULATION) TOP PILL      -->
+                        <!-- ========================================================= -->
+                        <g id="organ-step-7" onclick="selectStep(7)" class="svg-part active-organ-purple">
+                            <rect x="225" y="42" width="350" height="64" rx="22" fill="#e5deff" stroke="#0f172a" stroke-width="2.5"></rect>
+                            <circle cx="262" cy="74" r="16" fill="#1877f2" stroke="#0f172a" stroke-width="2"></circle>
+                            <text x="262" y="79" text-anchor="middle" fill="#fff" font-weight="800" font-size="13">8</text>
+                            <text x="410" y="69" text-anchor="middle" fill="#0f172a" font-weight="800" font-size="14">8. LUNG TISSUE (Pulmonary Loop)</text>
+                            <text x="410" y="88" text-anchor="middle" fill="#334155" font-weight="600" font-size="11">Gas Exchange: Drops CO₂ • Picks up Fresh O₂</text>
+                        </g>
+
+                        <!-- ========================================================= -->
+                        <!-- STEP 14: BODY TISSUES (SYSTEMIC CAPILLARIES) BOTTOM PILL  -->
+                        <!-- ========================================================= -->
+                        <g id="organ-step-13" onclick="selectStep(13)" class="svg-part">
+                            <rect x="215" y="505" width="370" height="64" rx="22" fill="#ffe8a3" stroke="#0f172a" stroke-width="2.5"></rect>
+                            <circle cx="252" cy="537" r="16" fill="#e11d48" stroke="#0f172a" stroke-width="2"></circle>
+                            <text x="252" y="542" text-anchor="middle" fill="#fff" font-weight="800" font-size="13">14</text>
+                            <text x="412" y="532" text-anchor="middle" fill="#0f172a" font-weight="800" font-size="14">14. BODY TISSUES (Systemic Capillaries)</text>
+                            <text x="412" y="551" text-anchor="middle" fill="#334155" font-weight="600" font-size="11">Delivers O₂ &amp; Nutrients • Drains back to Vena Cava</text>
+                        </g>
+
+                        <!-- Connecting Systemic Loop Vessels (Aorta -> Body -> Vena Cava) -->
+                        <path d="M 215 537 C 115 537, 105 425, 225 395" fill="none" stroke="#2563eb" stroke-width="11" stroke-linecap="round" opacity="0.4"></path>
+                        <path d="M 215 537 C 115 537, 105 425, 225 395" fill="none" stroke="#1d4ed8" stroke-width="3" class="vessel-stream"></path>
+
+                        <path d="M 485 162 C 625 162, 690 420, 585 537" fill="none" stroke="#e11d48" stroke-width="11" stroke-linecap="round" opacity="0.4"></path>
+                        <path d="M 485 162 C 625 162, 690 420, 585 537" fill="none" stroke="#be123c" stroke-width="3" class="vessel-stream"></path>
+
+                        <!-- ========================================================= -->
+                        <!-- ILLUSTRATED ANATOMICAL HEART (Bold Outlines like Ref UI)  -->
+                        <!-- ========================================================= -->
+                        <g id="heart-animated-group" class="heart-lub-dub" style="--beat-duration: 1.31s;">
+
+                            <!-- Outer Myocardium / Heart Muscle Shell -->
+                            <path d="M 395 190 C 305 170, 225 225, 235 320 C 245 415, 345 462, 415 478 C 485 458, 565 400, 562 305 C 560 220, 480 175, 395 190 Z" fill="#d94848" stroke="#0f172a" stroke-width="4" stroke-linejoin="round"></path>
+
+                            <!-- STEP 1: Superior & Inferior Vena Cava (Blue) -->
+                            <g id="organ-step-0" onclick="selectStep(0)" class="svg-part">
+                                <!-- Superior Vena Cava -->
+                                <path d="M 255 148 L 255 250 L 290 250 L 290 148 Z" fill="#3b82f6" stroke="#0f172a" stroke-width="3.5"></path>
+                                <ellipse cx="272.5" cy="148" rx="17.5" ry="6" fill="#1d4ed8" stroke="#0f172a" stroke-width="3"></ellipse>
+                                <!-- Inferior Vena Cava -->
+                                <path d="M 242 342 L 222 435 L 256 442 L 276 352 Z" fill="#3b82f6" stroke="#0f172a" stroke-width="3.5"></path>
+                                <circle cx="272" cy="182" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="272" y="187" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">1</text>
+                            </g>
+
+                            <!-- STEP 2: Right Atrium (Blue Receiving Chamber) -->
+                            <g id="organ-step-1" onclick="selectStep(1)" class="svg-part">
+                                <path d="M 255 240 C 230 262, 232 322, 265 342 C 302 352, 348 332, 348 290 C 348 252, 305 232, 255 240 Z" fill="#4f8ff7" stroke="#0f172a" stroke-width="3.5"></path>
+                                <circle cx="292" cy="288" r="15" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="292" y="293" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">2</text>
+                            </g>
+
+                            <!-- STEP 3: Tricuspid Valve -->
+                            <g id="organ-step-2" onclick="selectStep(2)" class="svg-part">
+                                <ellipse cx="315" cy="345" rx="30" ry="11" transform="rotate(18 315 345)" fill="#fef08a" stroke="#0f172a" stroke-width="3"></ellipse>
+                                <line x1="295" y1="339" x2="334" y2="351" stroke="#0f172a" stroke-width="2.5"></line>
+                                <circle cx="268" cy="355" r="13" fill="#fde047" stroke="#0f172a" stroke-width="2"></circle>
+                                <text x="268" y="359" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="800">3</text>
+                            </g>
+
+                            <!-- STEP 4: Right Ventricle -->
+                            <g id="organ-step-3" onclick="selectStep(3)" class="svg-part">
+                                <path d="M 278 358 C 272 412, 332 452, 394 456 C 394 398, 386 340, 366 320 C 346 340, 310 360, 278 358 Z" fill="#2563eb" stroke="#0f172a" stroke-width="3.5"></path>
+                                <circle cx="345" cy="408" r="15" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="345" y="413" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">4</text>
+                            </g>
+
+                            <!-- STEP 5: Pulmonary Semilunar Valve -->
+                            <g id="organ-step-4" onclick="selectStep(4)" class="svg-part">
+                                <ellipse cx="368" cy="296" rx="22" ry="9.5" transform="rotate(-15 368 296)" fill="#fef08a" stroke="#0f172a" stroke-width="3"></ellipse>
+                                <circle cx="355" cy="275" r="13" fill="#fde047" stroke="#0f172a" stroke-width="2"></circle>
+                                <text x="355" y="279" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="800">5</text>
+                            </g>
+
+                            <!-- STEP 6: Pulmonary Trunk -->
+                            <g id="organ-step-5" onclick="selectStep(5)" class="svg-part">
+                                <path d="M 350 284 L 350 198 L 390 198 L 390 284 Z" fill="#3b82f6" stroke="#0f172a" stroke-width="3.5"></path>
+                                <circle cx="370" cy="234" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="370" y="239" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">6</text>
+                            </g>
+
+                            <!-- STEP 7: Pulmonary Arteries (Blue T-Branch to Lungs) -->
+                            <g id="organ-step-6" onclick="selectStep(6)" class="svg-part">
+                                <path d="M 370 202 C 315 202, 290 152, 290 108 L 322 108 C 322 140, 344 170, 370 170 C 396 170, 418 140, 418 108 L 450 108 C 450 152, 425 202, 370 202 Z" fill="#60a5fa" stroke="#0f172a" stroke-width="3.5"></path>
+                                <circle cx="320" cy="152" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="320" y="157" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">7</text>
+                            </g>
+
+                            <!-- STEP 9: Pulmonary Veins (Red Vessels from Lungs to Left Atrium) -->
+                            <g id="organ-step-8" onclick="selectStep(8)" class="svg-part">
+                                <path d="M 495 108 C 515 155, 535 195, 520 245 L 550 252 C 568 195, 545 148, 524 108 Z" fill="#fb7185" stroke="#0f172a" stroke-width="3.5"></path>
+                                <circle cx="542" cy="186" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="542" y="191" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">9</text>
+                            </g>
+
+                            <!-- STEP 10: Left Atrium -->
+                            <g id="organ-step-9" onclick="selectStep(9)" class="svg-part">
+                                <path d="M 455 245 C 440 270, 445 320, 475 335 C 512 348, 550 322, 548 282 C 545 250, 495 235, 455 245 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="3.5"></path>
+                                <circle cx="502" cy="288" r="15" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="502" y="293" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">10</text>
+                            </g>
+
+                            <!-- STEP 11: Bicuspid (Mitral) Valve -->
+                            <g id="organ-step-10" onclick="selectStep(10)" class="svg-part">
+                                <ellipse cx="485" cy="342" rx="28" ry="11" transform="rotate(-18 485 342)" fill="#fef08a" stroke="#0f172a" stroke-width="3"></ellipse>
+                                <line x1="466" y1="347" x2="504" y2="336" stroke="#0f172a" stroke-width="2.5"></line>
+                                <circle cx="534" cy="348" r="13" fill="#fde047" stroke="#0f172a" stroke-width="2"></circle>
+                                <text x="534" y="352" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="800">11</text>
+                            </g>
+
+                            <!-- STEP 12: Left Ventricle (Thickest Chamber) -->
+                            <g id="organ-step-11" onclick="selectStep(11)" class="svg-part">
+                                <path d="M 418 322 C 415 390, 418 448, 425 458 C 484 442, 534 400, 524 352 C 494 356, 455 342, 418 322 Z" fill="#e11d48" stroke="#0f172a" stroke-width="4"></path>
+                                <circle cx="466" cy="404" r="15" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"></circle>
+                                <text x="466" y="409" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="800">12</text>
+                            </g>
+
+                            <!-- STEP 13: Aortic Semilunar Valve & Arch of Aorta -->
+                            <g id="organ-step-12" onclick="selectStep(12)" class="svg-part">
+                                <path d="M 410 290 L 410 165 C 410 122, 475 118, 495 158 L 465 174 C 455 152, 438 156, 438 175 L 438 290 Z" fill="#f43f5e" stroke="#0f172a" stroke-width="3.5"></path>
+                                <!-- 3 Aortic Arch Top Branches (Like Reference Heart Illustration) -->
+                                <rect x="422" y="112" width="11" height="24" rx="4" fill="#f43f5e" stroke="#0f172a" stroke-width="3"></rect>
+                                <rect x="442" y="108" width="11" height="24" rx="4" fill="#f43f5e" stroke="#0f172a" stroke-width="3"></rect>
+                                <rect x="462" y="114" width="11" height="24" rx="4" fill="#f43f5e" stroke="#0f172a" stroke-width="3"></rect>
+
+                                <ellipse cx="426" cy="298" rx="22" ry="9.5" transform="rotate(15 426 298)" fill="#fef08a" stroke="#0f172a" stroke-width="3"></ellipse>
+                                <circle cx="436" cy="274" r="13" fill="#fde047" stroke="#0f172a" stroke-width="2"></circle>
+                                <text x="436" y="278" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="800">13</text>
+                            </g>
+
+                            <!-- Coronary Surface Vessels (Visual Detail from Reference Heart Illustration) -->
+                            <path d="M 398 310 C 392 365, 385 415, 398 455 M 395 355 C 370 375, 355 390, 342 410 M 402 340 C 430 362, 445 385, 455 415" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" opacity="0.55" pointer-events="none"></path>
+                        </g>
+
+                        <!-- Animated Red & Blue Blood Cells Layer -->
+                        <g id="blood-cells-layer" class="pointer-events-none"><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="333.9" cy="167.2" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="325.1" cy="108.5" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="375.9" cy="74.0" fill="#9333ea"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="486.1" cy="85.0" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="535.1" cy="173.6" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="514.8" cy="255.5" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="494.0" cy="313.5" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="480.0" cy="358.4" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="463.8" cy="398.0" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="432.1" cy="314.1" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="438.1" cy="206.6" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="522.6" cy="230.4" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="601.6" cy="376.1" fill="#e11d48"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="516.5" cy="537.0" fill="#9333ea"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="326.5" cy="537.0" fill="#9333ea"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="196.3" cy="488.0" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="182.1" cy="425.8" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="275.6" cy="187.3" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="291.5" cy="284.7" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="309.6" cy="331.6" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="331.7" cy="380.0" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="353.0" cy="369.0" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="368.3" cy="286.1" fill="#2563eb"></circle><circle r="6" stroke="#0f172a" stroke-width="1.8" cx="369.9" cy="229.9" fill="#2563eb"></circle></g>
+
+                        <!-- Toggleable Clean Callout Labels -->
+                        <g id="svg-callout-labels" font-size="11" font-weight="800" fill="#0f172a" class="pointer-events-none">
+                            <rect x="75" y="168" width="128" height="22" rx="8" fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="1.5"></rect>
+                            <text x="139" y="183" text-anchor="middle">1. Vena Cava</text>
+
+                            <rect x="82" y="275" width="118" height="22" rx="8" fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="1.5"></rect>
+                            <text x="141" y="290" text-anchor="middle">2. Right Atrium</text>
+
+                            <rect x="82" y="395" width="128" height="22" rx="8" fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="1.5"></rect>
+                            <text x="146" y="410" text-anchor="middle">4. Right Ventricle</text>
+
+                            <rect x="590" y="172" width="136" height="22" rx="8" fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="1.5"></rect>
+                            <text x="658" y="187" text-anchor="middle">9. Pulmonary Veins</text>
+
+                            <rect x="595" y="275" width="118" height="22" rx="8" fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="1.5"></rect>
+                            <text x="654" y="290" text-anchor="middle">10. Left Atrium</text>
+
+                            <rect x="588" y="395" width="128" height="22" rx="8" fill="rgba(255,255,255,0.9)" stroke="#0f172a" stroke-width="1.5"></rect>
+                            <text x="652" y="410" text-anchor="middle">12. Left Ventricle</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Mint Green Bottom Card (Inspired by "Sleep Time 7h 30m" Checkmark Tracker on Middle Screen) -->
+                <div class="pastel-card bg-pastel-mint p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-full bg-white border-[1.5px] border-slate-900 flex items-center justify-center">
+                                <i class="ph-bold ph-footsteps text-slate-900"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-extrabold text-slate-900">Active Pathway Milestone</span>
+                                <p id="mint-step-subtitle" class="text-[11px] font-semibold text-slate-700">Pulmonary Circulation transforms oxygen-poor blood into oxygen-rich blood.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="prevStep()" class="w-8 h-8 rounded-full bg-white hover:bg-slate-900 hover:text-white border-[1.5px] border-slate-900 flex items-center justify-center transition">
+                                <i class="ph-bold ph-arrow-left text-xs"></i>
+                            </button>
+                            <button onclick="nextStep()" class="w-8 h-8 rounded-full bg-white hover:bg-slate-900 hover:text-white border-[1.5px] border-slate-900 flex items-center justify-center transition">
+                                <i class="ph-bold ph-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="mint-step-headline" class="text-lg sm:text-xl font-extrabold text-slate-900 mb-3">Step 8: Lung Tissue (Pulmonary Circulation)</div>
+
+                    <!-- 14 Checkmark Pills Row (Exact visual homage to the blue checkmarks in the Mint Card) -->
+                    <div id="step-checkmarks-row" class="grid grid-cols-7 sm:grid-cols-14 gap-1.5"><button title="1. Superior &amp; Inferior Vena Cava" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-[#1877f2] text-white"><i class="ph-bold ph-check text-xs"></i></button><button title="2. Right Atrium" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-[#1877f2] text-white"><i class="ph-bold ph-check text-xs"></i></button><button title="3. Tricuspid Valve" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-[#1877f2] text-white"><i class="ph-bold ph-check text-xs"></i></button><button title="4. Right Ventricle" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-[#1877f2] text-white"><i class="ph-bold ph-check text-xs"></i></button><button title="5. Pulmonary Semilunar Valve" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-[#1877f2] text-white"><i class="ph-bold ph-check text-xs"></i></button><button title="6. Pulmonary Trunk" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-[#1877f2] text-white"><i class="ph-bold ph-check text-xs"></i></button><button title="7. Pulmonary Arteries" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-[#1877f2] text-white"><i class="ph-bold ph-check text-xs"></i></button><button title="8. Lung Tissue (Pulmonary Circulation)" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-slate-900 text-white scale-110 shadow"><i class="ph-bold ph-check text-xs"></i></button><button title="9. Pulmonary Veins" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-white text-slate-700 hover:bg-slate-100">9</button><button title="10. Left Atrium" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-white text-slate-700 hover:bg-slate-100">10</button><button title="11. Bicuspid (Mitral) Valve" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-white text-slate-700 hover:bg-slate-100">11</button><button title="12. Left Ventricle" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-white text-slate-700 hover:bg-slate-100">12</button><button title="13. Aortic Semilunar Valve &amp; Aorta" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-white text-slate-700 hover:bg-slate-100">13</button><button title="14. Body Tissues (Systemic Capillaries)" class="h-7 rounded-full border-[1.5px] border-slate-900 flex items-center justify-center text-[11px] font-extrabold transition bg-white text-slate-700 hover:bg-slate-100">14</button></div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN (4 COLS): Radial Segmented Gauge + "Heart Overview" 2x2 Bento Grid -->
+            <div class="lg:col-span-4 bento-shell p-5 flex flex-col justify-between space-y-4">
+
+                <!-- Sky Blue Radial Segmented Gauge Card (Exact match to Right Phone Screen Top Card) -->
+                <div class="pastel-card bg-pastel-sky p-4">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                        <p id="gauge-top-caption" class="text-xs font-bold text-slate-900 leading-snug">
+                            Your cardiac cycle walkthrough is active — inspect every detail below! 💪
+                        </p>
+                        <div class="w-8 h-8 rounded-full bg-white border-[1.5px] border-slate-900 flex items-center justify-center shrink-0">
+                            <i class="ph-bold ph-pulse text-slate-900"></i>
+                        </div>
+                    </div>
+
+                    <!-- 22-Bar Radial Semicircle Gauge SVG -->
+                    <div class="relative flex flex-col items-center justify-center pt-1">
+                        <svg id="radial-gauge-svg" viewBox="0 0 260 140" class="w-full max-w-[250px] h-auto overflow-visible">
+                            <g id="gauge-bars-group"><rect id="gauge-bar-0" x="39.5" y="100.99999999999999" width="9" height="28" rx="4.5" transform="rotate(-90 44 114.99999999999999)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-1" x="40.460548944638944" y="88.18236510884897" width="9" height="28" rx="4.5" transform="rotate(-81.42857142857142 44.960548944638944 102.18236510884897)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-2" x="43.32073870239191" y="75.65105500066221" width="9" height="28" rx="4.5" transform="rotate(-72.85714285714286 47.82073870239191 89.65105500066221)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-3" x="48.01667736039197" y="63.685998435889985" width="9" height="28" rx="4.5" transform="rotate(-64.28571428571428 52.51667736039197 77.68599843588999)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-4" x="54.44346540882442" y="52.55447500652852" width="9" height="28" rx="4.5" transform="rotate(-55.71428571428572 58.94346540882442 66.55447500652852)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-5" x="62.45753902263493" y="42.50514455170094" width="9" height="28" rx="4.5" transform="rotate(-47.14285714285714 66.95753902263493 56.50514455170094)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-6" x="71.8798770401489" y="33.76249250774946" width="9" height="28" rx="4.5" transform="rotate(-38.571428571428584 76.3798770401489 47.76249250774946)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-7" x="82.50000000000003" y="26.52181527453827" width="9" height="28" rx="4.5" transform="rotate(-30 87.00000000000003 40.52181527453827)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-8" x="94.08067190449002" y="20.94485761659844" width="9" height="28" rx="4.5" transform="rotate(-21.42857142857143 98.58067190449002 34.94485761659844)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-9" x="106.36319967975697" y="17.156199552363162" width="9" height="28" rx="4.5" transform="rotate(-12.857142857142861 110.86319967975697 31.156199552363162)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-10" x="119.07321195156749" y="15.240473442418505" width="9" height="28" rx="4.5" transform="rotate(-4.285714285714292 123.57321195156749 29.240473442418505)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-11" x="131.92678804843248" y="15.240473442418505" width="9" height="28" rx="4.5" transform="rotate(4.285714285714292 136.42678804843248 29.240473442418505)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-12" x="144.63680032024303" y="17.156199552363162" width="9" height="28" rx="4.5" transform="rotate(12.857142857142847 149.13680032024303 31.156199552363162)" stroke="#0f172a" stroke-width="1.4" fill="#1877f2"></rect><rect id="gauge-bar-13" x="156.91932809550997" y="20.94485761659844" width="9" height="28" rx="4.5" transform="rotate(21.42857142857143 161.41932809550997 34.94485761659844)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-14" x="168.5" y="26.521815274538284" width="9" height="28" rx="4.5" transform="rotate(30 173 40.521815274538284)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-15" x="179.12012295985107" y="33.76249250774944" width="9" height="28" rx="4.5" transform="rotate(38.571428571428584 183.62012295985107 47.76249250774944)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-16" x="188.54246097736507" y="42.50514455170092" width="9" height="28" rx="4.5" transform="rotate(47.14285714285714 193.04246097736507 56.50514455170092)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-17" x="196.5565345911756" y="52.55447500652852" width="9" height="28" rx="4.5" transform="rotate(55.71428571428572 201.0565345911756 66.55447500652852)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-18" x="202.98332263960805" y="63.685998435889985" width="9" height="28" rx="4.5" transform="rotate(64.28571428571428 207.48332263960805 77.68599843588999)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-19" x="207.6792612976081" y="75.65105500066224" width="9" height="28" rx="4.5" transform="rotate(72.85714285714286 212.1792612976081 89.65105500066224)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-20" x="210.53945105536104" y="88.18236510884898" width="9" height="28" rx="4.5" transform="rotate(81.42857142857142 215.03945105536104 102.18236510884898)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect><rect id="gauge-bar-21" x="211.5" y="101" width="9" height="28" rx="4.5" transform="rotate(90 216 115)" stroke="#0f172a" stroke-width="1.4" fill="#ffffff"></rect></g>
+                            <text id="gauge-percent-text" x="130" y="108" text-anchor="middle" fill="#0f172a" font-size="34" font-weight="800" font-family="Space Grotesk">57%</text>
+                            <text id="gauge-label-text" x="130" y="128" text-anchor="middle" fill="#334155" font-size="12" font-weight="700">Step 8 of 14 • Cycle</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- White Pill Notification Bar (Like "2695 more to steps" in Right Phone Screen) -->
+                <div class="pastel-card bg-white px-4 py-2.5 rounded-full flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <i class="ph-fill ph-push-pin text-[#1877f2] text-lg shrink-0"></i>
+                        <span id="poster-note-pill" class="text-xs font-bold text-slate-800 truncate">Pulmonary Circulation transforms oxygen-poor blood into oxygen-rich blood.</span>
+                    </div>
+                    <span id="step-side-badge" class="px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-300 text-[10px] font-extrabold text-slate-700 shrink-0">Gas Exchange Site</span>
+                </div>
+
+                <!-- Detailed Anatomy Inspector Box for Current Step -->
+                <div class="pastel-card bg-white p-4 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span id="inspector-tag" class="text-[11px] font-extrabold uppercase tracking-wider text-[#1877f2]">Step 8 of 14 • Anatomical Role</span>
+                        <span id="inspector-o2-pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-900 border border-purple-400">Capillary Gas Exchange</span>
+                    </div>
+                    <h3 id="inspector-title" class="text-base font-extrabold text-slate-900">8. Lung Tissue (Pulmonary Circulation)</h3>
+                    <p id="inspector-desc" class="text-xs text-slate-700 leading-relaxed">In the lung capillaries, blood drops off CO₂ waste and picks up fresh Oxygen (O₂), turning bright crimson red!</p>
+                </div>
+
+                <!-- "Heart Overview" 2x2 Bento Grid with Overlapping Center Pill Button (Exact Match to Right Screen) -->
+                <div>
+                    <div class="flex items-center justify-between mb-2.5">
+                        <h3 class="text-base font-extrabold text-slate-900">Heart Overview</h3>
+                        <span class="text-[11px] font-semibold text-slate-500">Live Step Physiology</span>
+                    </div>
+
+                    <div class="relative grid grid-cols-2 gap-3">
+                        <!-- Top-Left Amber Card -->
+                        <div class="pastel-card bg-pastel-amber p-3.5">
+                            <div class="text-[11px] font-bold text-slate-700">Heart Rate</div>
+                            <div id="overview-bpm" class="text-2xl font-extrabold text-slate-900 mt-1">58</div>
+                            <div class="text-[10px] font-semibold text-slate-700">bpm</div>
+                        </div>
+
+                        <!-- Top-Right Lilac Card -->
+                        <div class="pastel-card bg-pastel-lilac p-3.5 text-right">
+                            <div class="text-[11px] font-bold text-slate-700">Chamber Pressure</div>
+                            <div id="overview-pressure" class="text-2xl font-extrabold text-slate-900 mt-1">10</div>
+                            <div class="text-[10px] font-semibold text-slate-700">mmHg (Low Venous)</div>
+                        </div>
+
+                        <!-- Center Overlapping Blue Pill Button ("All 14 Steps") -->
+                        <button onclick="openStepDrawerModal()" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 px-4 py-1.5 rounded-full bg-[#1877f2] hover:bg-blue-700 text-white font-extrabold text-xs border-2 border-slate-900 shadow-md transition active:scale-95 whitespace-nowrap">
+                            All 14 Steps
+                        </button>
+
+                        <!-- Bottom-Left Lilac Card -->
+                        <div class="pastel-card bg-pastel-lilac p-3.5">
+                            <div class="text-[11px] font-bold text-slate-700">Valve Status</div>
+                            <div id="overview-valve" class="text-lg font-extrabold text-slate-900 mt-1 truncate">O₂ Gas Exchange</div>
+                            <div class="text-[10px] font-semibold text-slate-700">One-Way Control</div>
+                        </div>
+
+                        <!-- Bottom-Right Amber Card -->
+                        <div class="pastel-card bg-pastel-amber p-3.5 text-right">
+                            <div class="text-[11px] font-bold text-slate-700">Blood SpO₂</div>
+                            <div id="overview-spo2" class="text-2xl font-extrabold text-slate-900 mt-1">99%</div>
+                            <div class="text-[10px] font-semibold text-slate-700">O₂ Saturation</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 2: POSTER STUDY CARDS (HEART FUNCTIONS & VESSEL STRUCTURES)    -->
+        <!-- =================================================================== -->
+        <section id="view-notes" class="space-y-6 hidden">
+            <div class="bento-shell p-6 space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#1877f2]">Complete Poster Transcription</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Heart &amp; Blood Vessels Study Guide</h2>
+                    </div>
+                    <button onclick="switchView('simulator')" class="px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center gap-2">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        <span>Back to Simulator</span>
+                    </button>
+                </div>
+
+                <!-- 4 Functions of the Heart & 5 Functions of Blood Vessels -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 4 Functions of the Heart -->
+                    <div class="pastel-card bg-pastel-sky p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-extrabold text-slate-900">Functions of the Heart (4)</h3>
+                            <span class="px-3 py-1 rounded-full bg-white border border-slate-900 text-xs font-extrabold">Poster Top-Left</span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3.5 rounded-2xl bg-white/90 border-[1.5px] border-slate-900">
+                                <div class="font-extrabold text-sm text-slate-900">1. Generates Blood Pressure</div>
+                                <p class="text-xs text-slate-700 mt-1">Contractions of the heart chambers generate blood pressure that forces blood through the blood vessels.</p>
+                            </div>
+                            <div class="p-3.5 rounded-2xl bg-white/90 border-[1.5px] border-slate-900">
+                                <div class="font-extrabold text-sm text-slate-900">2. Routes Blood</div>
+                                <p class="text-xs text-slate-700 mt-1">Separates pulmonary and systemic circulations so oxygen-poor blood goes to the lungs and oxygen-rich blood goes to body tissues.</p>
+                            </div>
+                            <div class="p-3.5 rounded-2xl bg-white/90 border-[1.5px] border-slate-900">
+                                <div class="font-extrabold text-sm text-slate-900">3. Ensures One-Way Flow</div>
+                                <p class="text-xs text-slate-700 mt-1">Heart valves (Tricuspid, Pulmonary Semilunar, Bicuspid, Aortic Semilunar) prevent backward flow of blood.</p>
+                            </div>
+                            <div class="p-3.5 rounded-2xl bg-white/90 border-[1.5px] border-slate-900">
+                                <div class="font-extrabold text-sm text-slate-900">4. Regulates Blood Supply</div>
+                                <p class="text-xs text-slate-700 mt-1">Changes in contraction rate and force match the changing metabolic needs of tissues.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5 Functions of Blood Vessels -->
+                    <div class="pastel-card bg-pastel-lilac p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-extrabold text-slate-900">Blood Vessels Function (5)</h3>
+                            <span class="px-3 py-1 rounded-full bg-white border border-slate-900 text-xs font-extrabold">Poster Top-Right</span>
+                        </div>
+                        <div class="space-y-2.5">
+                            <div class="p-3 rounded-2xl bg-white/90 border-[1.5px] border-slate-900 flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-full bg-slate-900 text-white text-xs font-extrabold flex items-center justify-center shrink-0">1</span>
+                                <div class="text-xs"><strong class="text-slate-900 block text-sm">Carry Blood</strong>Carries blood from the heart to all body tissues and back to the heart.</div>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-white/90 border-[1.5px] border-slate-900 flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-full bg-slate-900 text-white text-xs font-extrabold flex items-center justify-center shrink-0">2</span>
+                                <div class="text-xs"><strong class="text-slate-900 block text-sm">Exchange Nutrients, Waste Products &amp; Gases</strong>Occurs with tissues across thin capillary walls.</div>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-white/90 border-[1.5px] border-slate-900 flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-full bg-slate-900 text-white text-xs font-extrabold flex items-center justify-center shrink-0">3</span>
+                                <div class="text-xs"><strong class="text-slate-900 block text-sm">Transport Substances</strong>Moves hormones, nutrients, and immune components throughout the body.</div>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-white/90 border-[1.5px] border-slate-900 flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-full bg-slate-900 text-white text-xs font-extrabold flex items-center justify-center shrink-0">4</span>
+                                <div class="text-xs"><strong class="text-slate-900 block text-sm">Regulate Blood Pressure</strong>Works alongside the heart to maintain healthy systemic pressure.</div>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-white/90 border-[1.5px] border-slate-900 flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-full bg-slate-900 text-white text-xs font-extrabold flex items-center justify-center shrink-0">5</span>
+                                <div class="text-xs"><strong class="text-slate-900 block text-sm">Direct Blood Flow to Tissues</strong>Routes extra blood flow where tissues need oxygen most.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blood Vessels Structures: Arteries, Veins, Capillaries -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="pastel-card bg-pastel-amber p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full bg-white border border-slate-900 text-xs font-extrabold">ARTERIES</span>
+                            <span class="text-xs font-extrabold text-rose-700">"AWAY" from Heart</span>
+                        </div>
+                        <ul class="space-y-2 text-xs font-semibold text-slate-800">
+                            <li>• <strong>Thick walls</strong> with lots of <strong>elastic tissue</strong>.</li>
+                            <li>• Carry blood <strong class="underline">AWAY</strong> from the heart.</li>
+                            <li>• Blood is typically <strong>oxygenated</strong> (rich in oxygen), except Pulmonary Arteries.</li>
+                        </ul>
+                    </div>
+
+                    <div class="pastel-card bg-pastel-mint p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full bg-white border border-slate-900 text-xs font-extrabold">VEINS</span>
+                            <span class="text-xs font-extrabold text-blue-700">"TOWARD" the Heart</span>
+                        </div>
+                        <ul class="space-y-2 text-xs font-semibold text-slate-800">
+                            <li>• Carry blood <strong class="underline">TOWARD</strong> the heart.</li>
+                            <li>• <strong>Less elastic</strong> and have <strong>thinner walls</strong> than arteries.</li>
+                            <li>• Where blood is <strong>drained from the tissues</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <div class="pastel-card bg-pastel-purple p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full bg-white border border-slate-900 text-xs font-extrabold">CAPILLARIES</span>
+                            <span class="text-xs font-extrabold text-purple-800">"EXCHANGE" Site</span>
+                        </div>
+                        <ul class="space-y-2 text-xs font-semibold text-slate-800">
+                            <li>• Exchange occurs <strong class="underline">BETWEEN</strong> blood and tissue fluids.</li>
+                            <li>• <strong>Extremely thin walls</strong> that allow oxygen, nutrients, and waste products to move between blood &amp; surrounding tissues.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- VIEW 3: INTERACTIVE MASTERY QUIZ                                    -->
+        <!-- =================================================================== -->
+        <section id="view-quiz" class="max-w-3xl mx-auto">
+            <div class="bento-shell p-6 sm:p-8 space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#1877f2]">Test Your Recall</span>
+                        <h2 class="text-2xl font-extrabold text-slate-900">Poster Mastery Quiz</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="px-4 py-1.5 rounded-full bg-pastel-mint border-[1.5px] border-slate-900 text-xs font-extrabold">
+                            Score: <span id="quiz-score">0</span> / <span id="quiz-total">8</span>
+                        </div>
+                        <button onclick="resetQuiz()" class="px-4 py-1.5 rounded-full bg-white hover:bg-slate-900 hover:text-white border-[1.5px] border-slate-900 text-xs font-extrabold transition">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+                <div id="quiz-list" class="space-y-4"><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">1. According to the 'Important Takeaways' on your poster, what does the RIGHT side of the heart do?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(0, 0)" id="quiz-q0-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pumps oxygenated blood toward the body</span>
+                            <i id="quiz-icon-0-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(0, 1)" id="quiz-q0-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pumps deoxygenated blood TOWARD the lungs</span>
+                            <i id="quiz-icon-0-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(0, 2)" id="quiz-q0-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Receives oxygen-rich blood from the Lungs</span>
+                            <i id="quiz-icon-0-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(0, 3)" id="quiz-q0-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Sends blood directly through the Aorta</span>
+                            <i id="quiz-icon-0-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-0" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">2. Which heart valve sits between the Right Atrium and the Right Ventricle?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(1, 0)" id="quiz-q1-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Bicuspid Valve</span>
+                            <i id="quiz-icon-1-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(1, 1)" id="quiz-q1-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Tricuspid Valve</span>
+                            <i id="quiz-icon-1-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(1, 2)" id="quiz-q1-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Aortic Semilunar Valve</span>
+                            <i id="quiz-icon-1-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(1, 3)" id="quiz-q1-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Trunk</span>
+                            <i id="quiz-icon-1-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-1" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">3. On your poster, which blood vessels have THICK elastic walls and carry blood AWAY from the heart?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(2, 0)" id="quiz-q2-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Veins</span>
+                            <i id="quiz-icon-2-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(2, 1)" id="quiz-q2-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Capillaries</span>
+                            <i id="quiz-icon-2-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(2, 2)" id="quiz-q2-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Arteries</span>
+                            <i id="quiz-icon-2-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(2, 3)" id="quiz-q2-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Venules</span>
+                            <i id="quiz-icon-2-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-2" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">4. What is the exact sequence after blood leaves the Right Ventricle?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(3, 0)" id="quiz-q3-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Semilunar Valve → Pulmonary Trunk → Pulmonary Arteries → Lung Tissue</span>
+                            <i id="quiz-icon-3-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(3, 1)" id="quiz-q3-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Tricuspid Valve → Superior Vena Cava → Lungs</span>
+                            <i id="quiz-icon-3-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(3, 2)" id="quiz-q3-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Bicuspid Valve → Aorta → Body Tissues</span>
+                            <i id="quiz-icon-3-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(3, 3)" id="quiz-q3-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Veins → Left Atrium → Left Ventricle</span>
+                            <i id="quiz-icon-3-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-3" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">5. Which vessels carry oxygen-rich blood from the Lungs back to the Left Atrium?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(4, 0)" id="quiz-q4-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Arteries</span>
+                            <i id="quiz-icon-4-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(4, 1)" id="quiz-q4-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Superior Vena Cava</span>
+                            <i id="quiz-icon-4-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(4, 2)" id="quiz-q4-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Veins</span>
+                            <i id="quiz-icon-4-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(4, 3)" id="quiz-q4-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Aorta</span>
+                            <i id="quiz-icon-4-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-4" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">6. Which valve prevents backflow between the Left Atrium and Left Ventricle?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(5, 0)" id="quiz-q5-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Tricuspid Valve</span>
+                            <i id="quiz-icon-5-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(5, 1)" id="quiz-q5-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Bicuspid (Mitral) Valve</span>
+                            <i id="quiz-icon-5-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(5, 2)" id="quiz-q5-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Semilunar Valve</span>
+                            <i id="quiz-icon-5-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(5, 3)" id="quiz-q5-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Vena Cava</span>
+                            <i id="quiz-icon-5-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-5" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">7. Where does nutrient, gas, and waste exchange occur across 'extremely thin walls'?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(6, 0)" id="quiz-q6-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Arteries</span>
+                            <i id="quiz-icon-6-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(6, 1)" id="quiz-q6-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Veins</span>
+                            <i id="quiz-icon-6-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(6, 2)" id="quiz-q6-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Capillaries</span>
+                            <i id="quiz-icon-6-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(6, 3)" id="quiz-q6-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Heart Valves</span>
+                            <i id="quiz-icon-6-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-6" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div><div class="pastel-card bg-white p-5 space-y-3">
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900">8. Which large artery carries oxygenated blood from the Left Ventricle to the Body Tissues?</div>
+                    <div class="space-y-2">
+                        <button onclick="answerQuizQuestion(7, 0)" id="quiz-q7-o0" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Trunk</span>
+                            <i id="quiz-icon-7-0" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(7, 1)" id="quiz-q7-o1" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Aorta</span>
+                            <i id="quiz-icon-7-1" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(7, 2)" id="quiz-q7-o2" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Inferior Vena Cava</span>
+                            <i id="quiz-icon-7-2" class="ph-bold"></i>
+                        </button>
+                    
+                        <button onclick="answerQuizQuestion(7, 3)" id="quiz-q7-o3" class="w-full text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-pastel-sky border-[1.5px] border-slate-900 text-xs sm:text-sm font-bold text-slate-900 transition flex items-center justify-between">
+                            <span>Pulmonary Vein</span>
+                            <i id="quiz-icon-7-3" class="ph-bold"></i>
+                        </button>
+                    </div>
+                    <div id="quiz-fb-7" class="hidden text-xs font-bold p-3 rounded-xl border border-slate-900"></div>
+                </div></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Drawer for All 14 Steps Overview -->
+    <div id="steps-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bento-shell max-w-2xl w-full p-6 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+                <h3 class="text-xl font-extrabold text-slate-900">Complete 14-Step Blood Flow Pathway</h3>
+                <button onclick="closeStepDrawerModal()" class="pill-circle-btn">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            <div id="modal-steps-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 overflow-y-auto pr-1"><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">1</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Superior &amp; Inferior Vena Cava</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Right Side (Inflow)</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">2</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Right Atrium</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Right Side Chamber</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">3</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Tricuspid Valve</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Right Side Valve</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">4</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Right Ventricle</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Right Side Chamber</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">5</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Pulmonary Semilunar Valve</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Right Side Valve</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">6</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Pulmonary Trunk</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Pulmonary Pathway</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-[#1877f2] text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">7</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Pulmonary Arteries</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Pulmonary Pathway</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-pastel-sky shadow-md">
+                    <span class="w-7 h-7 rounded-full bg-purple-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">8</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Lung Tissue (Pulmonary Circulation)</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Gas Exchange Site</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">9</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Pulmonary Veins</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Left Side (Inflow)</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">10</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Left Atrium</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Left Side Chamber</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">11</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Bicuspid (Mitral) Valve</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Left Side Valve</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">12</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Left Ventricle</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Left Side Chamber</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">13</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Aortic Semilunar Valve &amp; Aorta</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Systemic Outflow</div>
+                    </div>
+                </button><button class="p-3 rounded-2xl border-[1.5px] border-slate-900 text-left flex items-center gap-3 transition bg-white hover:bg-slate-50">
+                    <span class="w-7 h-7 rounded-full bg-purple-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-900">14</span>
+                    <div class="min-w-0">
+                        <div class="text-xs font-extrabold text-slate-900 truncate">Body Tissues (Systemic Capillaries)</div>
+                        <div class="text-[10px] font-semibold text-slate-600 truncate">Systemic Exchange</div>
+                    </div>
+                </button></div>
+        </div>
+    </div>
+
+    <!-- Toast Notification for GitHub Multi-File ZIP Download -->
+    <div id="zip-toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-3 px-5 py-3.5 rounded-full bg-slate-900 text-white border-2 border-white shadow-2xl text-xs sm:text-sm font-bold">
+        <i class="ph-fill ph-check-circle text-emerald-400 text-xl"></i>
+        <span>Downloaded GitHub ZIP (`index.html`, `styles.css`, `script.js`, `README.md`)!</span>
+    </div>
+
+    <script src="script.js"></script>
+
+</body></html>

@@ -1,0 +1,147 @@
+:root {
+            --bg-canvas: #dce5f2;
+            --surface-shell: #f4f8fd;
+            --pastel-sky: #a2e4fb;
+            --pastel-lilac: #f2cde9;
+            --pastel-amber: #fae094;
+            --pastel-mint: #b2f5d8;
+            --pastel-purple: #dcd3ff;
+            --accent-blue: #1877f2;
+            --ink-dark: #111827;
+            --border-crisp: 1.5px solid #1e293b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 20% 10%, #eef5fc 0%, #d8e3f0 60%, #cbd8ea 100%);
+            color: var(--ink-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Reference UI Soft Bento Card with Crisp Dark Border & Subtle Elevation */
+        .bento-shell {
+            background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
+            border: 2px solid #ffffff;
+            box-shadow: 0 24px 60px -15px rgba(30, 41, 59, 0.14), 0 0 0 1px rgba(148, 163, 184, 0.25);
+            border-radius: 36px;
+        }
+
+        .pastel-card {
+            border: var(--border-crisp);
+            border-radius: 24px;
+            box-shadow: 0 4px 0px rgba(15, 23, 42, 0.08);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+        }
+        .pastel-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0px rgba(15, 23, 42, 0.12);
+        }
+
+        .bg-pastel-sky { background: linear-gradient(135deg, #b0ecff 0%, #8fdcf9 100%); }
+        .bg-pastel-lilac { background: linear-gradient(135deg, #f8d8f0 0%, #eabee0 100%); }
+        .bg-pastel-amber { background: linear-gradient(135deg, #ffe8a3 0%, #f8d472 100%); }
+        .bg-pastel-mint { background: linear-gradient(135deg, #c1fae1 0%, #9ef0cc 100%); }
+        .bg-pastel-purple { background: linear-gradient(135deg, #e5deff 0%, #cfc3ff 100%); }
+
+        .pill-circle-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 9999px;
+            border: 1.5px solid #1e293b;
+            background: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 0 rgba(15, 23, 42, 0.1);
+        }
+        .pill-circle-btn:hover {
+            background: #1877f2;
+            color: #ffffff;
+            border-color: #1877f2;
+            transform: scale(1.05);
+        }
+
+        /* Lub-Dub Realistic Heartbeat Contraction */
+        @keyframes lubDubBeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.045); }
+            28% { transform: scale(0.995); }
+            42% { transform: scale(1.028); }
+            70% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+        .heart-lub-dub {
+            animation: lubDubBeat var(--beat-duration, 0.85s) infinite ease-in-out;
+            transform-origin: 400px 315px;
+        }
+
+        /* Active Anatomical Structure Highlights */
+        @keyframes glowBluePulse {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(24, 119, 242, 0.65)); }
+            50% { filter: drop-shadow(0 0 18px rgba(24, 119, 242, 1)); }
+        }
+        @keyframes glowRedPulse {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(225, 29, 72, 0.65)); }
+            50% { filter: drop-shadow(0 0 18px rgba(225, 29, 72, 1)); }
+        }
+        @keyframes glowPurplePulse {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(147, 51, 234, 0.65)); }
+            50% { filter: drop-shadow(0 0 18px rgba(147, 51, 234, 1)); }
+        }
+
+        .active-organ-blue {
+            animation: glowBluePulse 1.3s infinite ease-in-out;
+            stroke: #1d4ed8 !important;
+            stroke-width: 4px !important;
+        }
+        .active-organ-red {
+            animation: glowRedPulse 1.3s infinite ease-in-out;
+            stroke: #be123c !important;
+            stroke-width: 4px !important;
+        }
+        .active-organ-purple {
+            animation: glowPurplePulse 1.3s infinite ease-in-out;
+            stroke: #7e22ce !important;
+            stroke-width: 4px !important;
+        }
+
+        /* Animated ECG Waveform Behind Heart */
+        .ecg-line-anim {
+            stroke-dasharray: 900;
+            stroke-dashoffset: 900;
+            animation: ecgSweep 2.6s linear infinite;
+        }
+        @keyframes ecgSweep {
+            0% { stroke-dashoffset: 900; }
+            50% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -900; }
+        }
+
+        /* Flow Path Dashed Stream */
+        .vessel-stream {
+            stroke-dasharray: 8 10;
+            animation: streamFlow 1s linear infinite;
+        }
+        @keyframes streamFlow {
+            to { stroke-dashoffset: -36; }
+        }
+
+        .svg-part {
+            cursor: pointer;
+            transition: filter 0.2s ease, opacity 0.2s ease;
+        }
+        .svg-part:hover {
+            filter: brightness(1.12) contrast(1.05);
+        }
+
+        /* Custom Scrollbar for Step Cards */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
